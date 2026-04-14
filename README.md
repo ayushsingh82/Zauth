@@ -34,3 +34,8 @@ The original stack used UltraHonk submission to zkVerify. This starter removes t
 - You must deploy or use an existing Solidity verifier contract on HashKey testnet.
 - The API expects proof format compatible with your verifier ABI.
 - This is a hackathon-ready foundation, not production hardening.
+
+## Demo route
+
+- Start the demo app and open `/hashkey-demo`.
+- Use `NEXT_PUBLIC_HASHKEY_VERIFIER_API` if your verifier server is not running on localhost.
