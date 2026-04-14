@@ -1,12 +1,52 @@
 {
-  "name": "@hashkey-hacks/captcha-sdk",
+  "name": "@ethayush/captcha-sdk",
   "version": "0.1.0",
-  "private": true,
+  "description": "HashKey-compatible CAPTCHA SDK for challenge and proof verification APIs",
+  "private": false,
   "type": "module",
   "main": "dist/index.js",
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist/**",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
-    "build": "tsc -p tsconfig.json"
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit",
+    "build": "npm run clean && tsc -p tsconfig.json",
+    "prepublishOnly": "npm run build && npm run typecheck",
+    "pack:check": "npm pack --dry-run"
+  },
+  "keywords": [
+    "hashkey",
+    "captcha",
+    "zkproof",
+    "verification",
+    "typescript",
+    "sdk"
+  ],
+  "author": "Ayush Singh",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ayushsingh82/zcaptcha.git",
+    "directory": "hashkey-hacks/sdk"
+  },
+  "bugs": {
+    "url": "https://github.com/ayushsingh82/zcaptcha/issues"
+  },
+  "homepage": "https://github.com/ayushsingh82/zcaptcha/tree/main/hashkey-hacks/sdk#readme",
+  "publishConfig": {
+    "access": "public"
   },
   "dependencies": {
     "zod": "^3.25.76"

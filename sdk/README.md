@@ -1,0 +1,55 @@
+# @ethayush/captcha-sdk
+
+HashKey-compatible CAPTCHA SDK for frontend apps.
+
+This SDK is designed for the `zauth-captcha` style flow:
+- request challenge from your challenge backend
+- submit proof to your HashKey verifier backend
+
+## Install
+
+```bash
+npm install @ethayush/captcha-sdk
+```
+
+## Usage
+
+```ts
+import { HashkeyCaptchaSdk } from '@ethayush/captcha-sdk';
+
+const sdk = new HashkeyCaptchaSdk(
+  'https://your-challenge-backend.com',
+  'https://your-verifier-backend.com'
+);
+
+const challenge = await sdk.getChallenge('my-site-id');
+const ok = await sdk.verify('0xproof', ['1', '2', '3']);
+```
+
+## API
+
+### `new HashkeyCaptchaSdk(challengeApiUrl, verifierApiUrl)`
+- `challengeApiUrl`: backend base URL exposing `POST /api/challenge`
+- `verifierApiUrl`: backend base URL exposing `POST /verify`
+
+### `getChallenge(siteId: string)`
+Returns:
+- `challengeId`
+- `nonce`
+- `difficulty`
+- `expiresAt`
+
+### `verify(proof: string, publicInputs: string[])`
+Returns:
+- `boolean` (`true` if backend verification returns success)
+
+## Publish checklist
+
+1. Update version in `package.json`
+2. Run:
+   - `npm install`
+   - `npm run build`
+   - `npm run pack:check`
+3. Login and publish:
+   - `npm login`
+   - `npm publish --access public`
