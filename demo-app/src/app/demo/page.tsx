@@ -2,8 +2,6 @@ import Link from 'next/link';
 import { DemoVerifier } from '../../components/demo-verifier';
 
 export default function DemoPage() {
-  const halfWidth = '21rem';
-
   return (
     <div className="pow-shell">
       <header className="pow-nav">
@@ -15,9 +13,6 @@ export default function DemoPage() {
           </nav>
         </div>
       </header>
-
-      <div className="pow-vline" style={{ left: `calc(50% - ${halfWidth})` }} />
-      <div className="pow-vline" style={{ right: `calc(50% - ${halfWidth})` }} />
 
       <main className="pow-main">
         <DemoVerifier />

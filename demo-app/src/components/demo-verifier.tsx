@@ -33,42 +33,49 @@ export function DemoVerifier() {
   };
 
   return (
-    <div className="card" style={{ padding: '1.4rem' }}>
-      <p className="section-label">Interactive playground</p>
-      <h1 style={{ marginTop: 0, marginBottom: '0.4rem' }}>HashKey verifier demo</h1>
-      <p style={{ color: 'var(--muted)', marginTop: 0 }}>
-        Submit proof and public inputs to your verifier API and inspect the raw JSON response.
-      </p>
+    <div className="verify-panel">
+      <div className="verify-header">
+        <span className="pow-badge">Interactive Playground</span>
+        <h2 className="verify-title">HashKey Verifier Demo</h2>
+        <p className="verify-desc">
+          Submit proof and public inputs to your verifier API and inspect the raw JSON response.<br/>
+          Target API: <code>{verifierApi}</code>
+        </p>
+      </div>
 
-      <label style={{ display: 'block', marginTop: 12, fontWeight: 600, marginBottom: 6 }}>Proof (hex)</label>
-      <textarea className="input" value={proof} onChange={(e) => setProof(e.target.value)} rows={7} />
+      <div className="input-group">
+        <label>Proof (hex)</label>
+        <textarea className="input" value={proof} onChange={(e) => setProof(e.target.value)} rows={4} placeholder="0x..." />
+      </div>
 
-      <label style={{ display: 'block', marginTop: 12, fontWeight: 600, marginBottom: 6 }}>
-        Public inputs (comma separated uint256)
-      </label>
-      <input className="input" value={inputs} onChange={(e) => setInputs(e.target.value)} />
+      <div className="input-group">
+        <label>Public inputs (comma separated uint256)</label>
+        <input className="input" value={inputs} onChange={(e) => setInputs(e.target.value)} placeholder="1, 2, 3" />
+      </div>
 
-      <p style={{ marginTop: 8, marginBottom: 0, color: 'var(--muted)', fontSize: '0.92rem' }}>
-        Target API: <code>{verifierApi}</code>
-      </p>
-
-      <button className="btn btn-primary" onClick={onVerify} disabled={loading} style={{ marginTop: 16 }}>
-        {loading ? 'Verifying...' : 'Verify on HashKey'}
+      <button className="verify-btn" onClick={onVerify} disabled={loading}>
+        {loading ? (
+          <span className="flex items-center gap-2 justify-center">
+            <svg className="spinner" viewBox="0 0 50 50">
+              <circle cx="25" cy="25" r="20" fill="none" strokeWidth="5"></circle>
+            </svg>
+            Verifying proof...
+          </span>
+        ) : 'Verify on HashKey'}
       </button>
 
       {result && (
-        <pre
-          style={{
-            marginTop: 16,
-            background: '#0b1220',
-            color: '#dbeafe',
-            padding: 12,
-            borderRadius: 8,
-            overflowX: 'auto'
-          }}
-        >
-          {result}
-        </pre>
+        <div className="result-container">
+          <div className="result-header">
+            <span>Response</span>
+            <span className={result.includes('error') ? 'status-error' : 'status-success'}>
+              {result.includes('error') ? 'Failed' : 'Success'}
+            </span>
+          </div>
+          <pre className="result-box">
+            {result}
+          </pre>
+        </div>
       )}
     </div>
   );
