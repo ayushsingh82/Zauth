@@ -6,9 +6,7 @@ export function Navbar() {
       <div className="pow-nav-inner">
         <Link href="/" className="pow-brand">ZAuth</Link>
         <nav className="pow-nav-links">
-          <a className="pow-link" href="#how">How it works</a>
-          <a className="pow-link" href="#developers">Developers</a>
-          <Link className="pow-cta" href="/demo">Open demo</Link>
+          <Link className="pow-cta" href="/demo">Get Started</Link>
         </nav>
       </div>
     </header>

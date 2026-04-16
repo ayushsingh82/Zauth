@@ -1,4 +1,4 @@
-# ZAuth Captcha for HashKey (No UltraHonk)
+# ZAuth Captcha for HashKey (Groth16-first)
 
 This folder contains a HashKey-compatible build of the ZAuth CAPTCHA product.
 
@@ -7,6 +7,7 @@ This folder contains a HashKey-compatible build of the ZAuth CAPTCHA product.
 - `verifier-server/` - Express API that verifies proofs against an on-chain verifier contract on HashKey testnet.
 - `sdk/` - Tiny TypeScript SDK for frontend apps to call challenge + verify APIs.
 - `demo-app/` - Next.js demo route (`/hashkey-demo`) that exercises the SDK flow.
+- `circuits/` - Noir starter circuit package for the HashKey-compatible captcha proving flow.
 
 ## Relation with existing repos
 
@@ -17,7 +18,8 @@ This folder contains a HashKey-compatible build of the ZAuth CAPTCHA product.
 
 ## Why this works for HashKey
 
-The original stack used UltraHonk submission to zkVerify. This starter removes that dependency and uses a standard EVM verifier contract call (`verifyProof`) via JSON-RPC on HashKey testnet.
+HashKey-friendly flow here is Groth16-first.  
+This starter supports verifier contracts that expose Groth16 `verifyProof(...)` and uses JSON-RPC on HashKey testnet.
 
 ## Quick start
 
@@ -56,7 +58,8 @@ Use these values in `verifier-server/.env`.
 
 1. Frontend sends `proof` + `publicInputs` to `POST /verify` on your verifier server.
 2. The server calls your deployed verifier contract on HashKey testnet:
-   - contract method: `verifyProof(bytes proof, uint256[] publicInputs) returns (bool)`
+   - default mode: Groth16 (`a`, `b`, `c`, `input`)
+   - optional fallback mode: `verifyProof(bytes proof, uint256[] publicInputs)`
 3. The API returns `{ success: true/false }`.
 4. You can cross-check contract activity/state using the HashKey testnet explorer.
 

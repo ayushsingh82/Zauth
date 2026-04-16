@@ -1,0 +1,7 @@
+[package]
+name = "zauth_hashkey_captcha"
+type = "bin"
+authors = ["ZAuth"]
+compiler_version = ">=0.33.0"
+
+[dependencies]

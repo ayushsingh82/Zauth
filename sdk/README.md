@@ -23,7 +23,9 @@ const sdk = new HashkeyCaptchaSdk(
 );
 
 const challenge = await sdk.getChallenge('my-site-id');
-const ok = await sdk.verify('0xproof', ['1', '2', '3']);
+const proof = await sdk.generateProof(challenge);
+const result = await sdk.verify(challenge.challengeId, proof, 'my-site-id');
+console.log(result.success, result.token);
 ```
 
 ## API
@@ -39,9 +41,21 @@ Returns:
 - `difficulty`
 - `expiresAt`
 
-### `verify(proof: string, publicInputs: string[])`
+### `verifyOnchain(proofData: string, publicInputs: string[])`
 Returns:
 - `boolean` (`true` if backend verification returns success)
+
+### `generateProof(challenge: Challenge)`
+Returns a compatibility-oriented proof object:
+- `proofData`
+- `publicInputs`
+
+### `verify(challengeId: string, proof: Proof, siteId?: string)`
+Returns:
+- `success`
+- `verificationId`
+- `token`
+- `expiresAt`
 
 ## Publish checklist
 

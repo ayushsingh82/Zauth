@@ -8,8 +8,7 @@ export default function DemoPage() {
         <div className="pow-nav-inner">
           <Link href="/" className="pow-brand">ZAuth</Link>
           <nav className="pow-nav-links">
-            <Link className="pow-link" href="/">Home</Link>
-            <span className="pow-cta">Demo</span>
+            <Link className="pow-cta" href="/demo">Open demo</Link>
           </nav>
         </div>
       </header>

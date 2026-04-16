@@ -2,23 +2,31 @@ import Link from 'next/link';
 
 export function HeroSection() {
   return (
-    <section className="pow-section">
-      <p className="pow-badge">ZAuth Captcha - HashKey edition</p>
+    <section className="pow-section" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', paddingTop: '4rem' }}>
+      <p className="pow-badge">ZKcaptcha - Now in Public Beta</p>
       <h1 className="pow-title">
-        Privacy-preserving human verification
+        Confidential Browsing
         <br />
-        for modern apps on HashKey
+        built on HashKey Chain
       </h1>
       <p className="pow-copy">
-        ZAuth replaces opaque CAPTCHA tokens with proof-based verification so applications can trust challenge outcomes
-        without exposing user-side private inputs.
+        Verify personal attributes or browse privately without exposing emails, IPs, or credentials.
+        Zero-knowledge proofs generated locally and verified scalably on HashKey Chain.
       </p>
+      <div className="pow-feature-list">
+        <span>Replace CAPTCHA with ZK proofs</span>
+        <span>Full-stack Confidential Browsing</span>
+        <span>Proof-based authentication</span>
+      </div>
       <div className="pow-actions">
-        <Link className="pow-cta" href="/demo">Try demo</Link>
-        <a className="pow-ghost" href="https://www.npmjs.com/package/@ethayush/captcha-sdk" target="_blank" rel="noreferrer">
-          NPM SDK
+        <Link className="pow-cta" href="/demo">Try ZK CAPTCHA</Link>
+        <a className="pow-ghost" href="#developers">
+          NPM Package
         </a>
       </div>
+      <p className="pow-copy" style={{ marginTop: '1rem' }}>
+        Powered by <strong>HashKey Chain</strong>
+      </p>
     </section>
   );
 }
