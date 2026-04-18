@@ -1,0 +1,14 @@
+{
+  "hashkey-testnet": {
+    "chainId": 133,
+    "rpcUrl": "https://testnet.hsk.xyz",
+    "explorer": "https://testnet-explorer.hsk.xyz",
+    "contracts": {
+      "ZAuthVerifier": "0xC40c974E6D50D201C93265a9D8423e30D0C551aE",
+      "ZAuthAttestor": "0x0c9CfcfDfDA0317659DEB59d3409D059a0DCe5DB"
+    },
+    "deployer": "0x00562cb716b4C4Bf62ECc330a18E0A087518Ca14",
+    "sampleAttestationTx": "0x2e791493198406c8df6cdcbb39597e8664d8ff31e2ae7296839330d7d3b125be",
+    "sampleAttestationBlock": 26660961
+  }
+}

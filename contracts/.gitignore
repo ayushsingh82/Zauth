@@ -1,0 +1,12 @@
+node_modules
+.env
+.env.local
+cache
+artifacts
+typechain-types
+dist
+coverage
+*.log
+
+# 0xTools generated signatures
+signatures/

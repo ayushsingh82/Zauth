@@ -1,7 +1,7 @@
 {
-  "name": "@ethayush/captcha-sdk",
-  "version": "0.1.0",
-  "description": "HashKey-compatible CAPTCHA SDK for challenge and proof verification APIs",
+  "name": "zauth-sdk",
+  "version": "0.2.1",
+  "description": "Zero-knowledge CAPTCHA SDK for HashKey Chain — mines PoW, generates a Groth16 proof in the browser, and submits it to an on-chain verifier",
   "private": false,
   "type": "module",
   "main": "dist/index.js",
@@ -49,6 +49,8 @@
     "access": "public"
   },
   "dependencies": {
+    "circomlibjs": "^0.1.7",
+    "snarkjs": "^0.7.6",
     "zod": "^3.25.76"
   },
   "devDependencies": {
