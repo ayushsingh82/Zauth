@@ -12,17 +12,13 @@ type Step =
   | { kind: 'done'; result: VerificationResult | { success: boolean } }
   | { kind: 'error'; message: string };
 
-const VERIFIER_ADDR =
-  process.env.NEXT_PUBLIC_ZAUTH_VERIFIER_ADDRESS || '0xC40c974E6D50D201C93265a9D8423e30D0C551aE';
-const ATTESTOR_ADDR =
-  process.env.NEXT_PUBLIC_ZAUTH_ATTESTOR_ADDRESS || '0x0c9CfcfDfDA0317659DEB59d3409D059a0DCe5DB';
-const EXPLORER =
-  process.env.NEXT_PUBLIC_HASHKEY_EXPLORER || 'https://testnet-explorer.hsk.xyz';
+const VERIFIER_ADDR = '0xC40c974E6D50D201C93265a9D8423e30D0C551aE';
+const ATTESTOR_ADDR = '0x0c9CfcfDfDA0317659DEB59d3409D059a0DCe5DB';
+const EXPLORER = 'https://testnet-explorer.hsk.xyz';
+const VERIFIER_API = 'https://zauth-verifier-production.up.railway.app';
 
 export function DemoVerifier() {
-  const verifierApi =
-    process.env.NEXT_PUBLIC_HASHKEY_VERIFIER_API ||
-    'https://zauth-verifier-production.up.railway.app';
+  const verifierApi = VERIFIER_API;
 
   const sdk = useMemo(
     () => new HashkeyCaptchaSdk(verifierApi, verifierApi, { artifactBaseUrl: '/zauth' }),
