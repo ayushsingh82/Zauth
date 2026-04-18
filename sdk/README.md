@@ -1,4 +1,4 @@
-# @ethayush/captcha-sdk
+# zauth-sdk
 
 TypeScript SDK for the [ZAuth](https://github.com/ayushsingh82/Zauth)
 zero-knowledge CAPTCHA on HashKey Chain. Fetches a challenge, generates a
@@ -8,7 +8,7 @@ verifier.
 ## Install
 
 ```bash
-npm i @ethayush/captcha-sdk
+npm i zauth-sdk
 ```
 
 Peer deps (pulled in automatically): `snarkjs`, `circomlibjs`, `zod`.
@@ -21,7 +21,7 @@ your browser can `fetch` them. For a Next.js app, drop them into
 folder of the main repo.
 
 ```ts
-import { HashkeyCaptchaSdk } from '@ethayush/captcha-sdk';
+import { HashkeyCaptchaSdk } from 'zauth-sdk';
 
 const sdk = new HashkeyCaptchaSdk(
   'https://your-verifier-server.example.com', // challenge + verify API

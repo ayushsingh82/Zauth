@@ -1,8 +1,8 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
-import type { Challenge, Proof, VerificationResult } from '@ethayush/captcha-sdk';
-import { HashkeyCaptchaSdk } from '@ethayush/captcha-sdk';
+import type { Challenge, Proof, VerificationResult } from 'zauth-sdk';
+import { HashkeyCaptchaSdk } from 'zauth-sdk';
 
 type Step =
   | { kind: 'idle' }

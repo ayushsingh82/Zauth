@@ -1,6 +1,6 @@
 {
-  "name": "@ethayush/captcha-sdk",
-  "version": "0.2.0",
+  "name": "zauth-sdk",
+  "version": "0.2.1",
   "description": "Zero-knowledge CAPTCHA SDK for HashKey Chain — mines PoW, generates a Groth16 proof in the browser, and submits it to an on-chain verifier",
   "private": false,
   "type": "module",

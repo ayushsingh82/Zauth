@@ -7,3 +7,6 @@ typechain-types
 dist
 coverage
 *.log
+
+# 0xTools generated signatures
+signatures/
