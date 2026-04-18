@@ -20,7 +20,9 @@ const EXPLORER =
   process.env.NEXT_PUBLIC_HASHKEY_EXPLORER || 'https://testnet-explorer.hsk.xyz';
 
 export function DemoVerifier() {
-  const verifierApi = process.env.NEXT_PUBLIC_HASHKEY_VERIFIER_API || 'http://localhost:4000';
+  const verifierApi =
+    process.env.NEXT_PUBLIC_HASHKEY_VERIFIER_API ||
+    'https://zauth-verifier-production.up.railway.app';
 
   const sdk = useMemo(
     () => new HashkeyCaptchaSdk(verifierApi, verifierApi, { artifactBaseUrl: '/zauth' }),
