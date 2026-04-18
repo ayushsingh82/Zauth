@@ -100,10 +100,12 @@ export class HashkeyCaptchaSdk {
   async generateProof(challenge: Challenge): Promise<Proof> {
     if (!this.initialized) await this.initialize();
 
-    const [{ default: snarkjs }, { buildPoseidon }] = await Promise.all([
+    const [snarkjsMod, circomlibMod] = await Promise.all([
       import('snarkjs') as Promise<any>,
       import('circomlibjs') as Promise<any>
     ]);
+    const snarkjs = snarkjsMod.default ?? snarkjsMod;
+    const buildPoseidon = (circomlibMod.default ?? circomlibMod).buildPoseidon;
 
     const poseidon = await buildPoseidon();
     const F = poseidon.F;
