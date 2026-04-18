@@ -1,0 +1,20 @@
+{
+  "name": "circuits",
+  "version": "1.0.0",
+  "description": "HashKey integrations should prefer Groth16 verifier contracts.   This folder currently contains a Noir starter scaffold for local iteration, but production verification mode in this repo is Groth16-first.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "circomlib": "^2.0.5",
+    "snarkjs": "^0.7.6"
+  },
+  "dependencies": {
+    "circomlibjs": "^0.1.7"
+  }
+}

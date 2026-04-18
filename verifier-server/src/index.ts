@@ -35,20 +35,24 @@ const verifierAbi = [
   }
 ] as const;
 
+// snarkjs emits a fixed-size `uint[N] _pubSignals` per circuit. Our ZAuth
+// circuit exposes 4 public signals: [commitment, powHash, nonce, expiry].
 const groth16VerifierAbi = [
   {
     type: 'function',
     name: 'verifyProof',
     stateMutability: 'view',
     inputs: [
-      { name: 'a', type: 'uint256[2]' },
-      { name: 'b', type: 'uint256[2][2]' },
-      { name: 'c', type: 'uint256[2]' },
-      { name: 'input', type: 'uint256[]' }
+      { name: '_pA', type: 'uint256[2]' },
+      { name: '_pB', type: 'uint256[2][2]' },
+      { name: '_pC', type: 'uint256[2]' },
+      { name: '_pubSignals', type: 'uint256[4]' }
     ],
     outputs: [{ name: '', type: 'bool' }]
   }
 ] as const;
+
+const ZAUTH_PUBLIC_SIGNAL_COUNT = 4;
 
 const verifySchema = z.object({
   proof: z.string().min(2),
@@ -83,7 +87,11 @@ const legacyVerifySchema = z.object({
 
 type ChallengeRecord = {
   challengeId: string;
+  // Nonce as decimal string of a BN254 field element. We use decimal because
+  // circom/snarkjs consume field inputs as decimal strings.
   nonce: string;
+  // Unix seconds; matches the circuit's `expiry` public signal exactly.
+  expirySec: number;
   difficulty: number;
   siteId: string;
   expiresAt: number;
@@ -96,6 +104,12 @@ async function verifyProofOnchain(args: { proofData?: string; publicInputs: stri
     if (!args.groth16) {
       throw new Error('GROTH16_PROOF_REQUIRED');
     }
+    if (args.groth16.input.length !== ZAUTH_PUBLIC_SIGNAL_COUNT) {
+      throw new Error(
+        `INVALID_PUBLIC_SIGNALS: expected ${ZAUTH_PUBLIC_SIGNAL_COUNT}, got ${args.groth16.input.length}`
+      );
+    }
+    const [i0, i1, i2, i3] = args.groth16.input.map((v) => BigInt(v));
     return client.readContract({
       address: VERIFIER_CONTRACT_ADDRESS,
       abi: groth16VerifierAbi,
@@ -107,7 +121,7 @@ async function verifyProofOnchain(args: { proofData?: string; publicInputs: stri
           [BigInt(args.groth16.b[1][0]), BigInt(args.groth16.b[1][1])]
         ],
         [BigInt(args.groth16.c[0]), BigInt(args.groth16.c[1])],
-        args.groth16.input.map((v) => BigInt(v))
+        [i0, i1, i2, i3]
       ]
     });
   }
@@ -147,18 +161,31 @@ app.get('/health', (_, res) => {
   });
 });
 
+// BN254 scalar field modulus. Any nonce must be smaller than this so it
+// round-trips through the circuit unchanged.
+const BN254_R = 21888242871839275222246405745257275088548364400416034343698204186575808495617n;
+
+function randomFieldElement(): bigint {
+  // 31 bytes = 248 bits -> always < r.
+  return BigInt('0x' + randomBytes(31).toString('hex'));
+}
+
 app.post('/api/challenge', (req, res) => {
   try {
     const body = challengeRequestSchema.parse(req.body);
     const challengeId = uuidv4();
-    const nonce = randomBytes(16).toString('hex');
-    const difficulty = 10;
-    const expiresAt = Date.now() + CHALLENGE_EXPIRY_SECONDS * 1000;
+    // Decimal field element; fits in one uint256 public signal.
+    const nonce = randomFieldElement().toString();
+    // Circuit uses a compile-time difficulty of 8 bits. Clients should respect it.
+    const difficulty = 8;
+    const expirySec = Math.floor(Date.now() / 1000) + CHALLENGE_EXPIRY_SECONDS;
+    const expiresAt = expirySec * 1000;
     const siteId = body.siteId || 'default';
 
     challenges.set(challengeId, {
       challengeId,
       nonce,
+      expirySec,
       difficulty,
       siteId,
       expiresAt
@@ -167,6 +194,7 @@ app.post('/api/challenge', (req, res) => {
     res.json({
       challengeId,
       nonce,
+      expirySec,
       difficulty,
       expiresAt: new Date(expiresAt).toISOString()
     });
@@ -203,6 +231,31 @@ app.post('/api/verify', async (req, res) => {
     if (Date.now() > challenge.expiresAt) {
       challenges.delete(body.challengeId);
       return res.status(400).json({ error: 'CHALLENGE_EXPIRED', message: 'Challenge expired' });
+    }
+
+    // Bind the proof to this specific challenge before spending gas on the
+    // on-chain verify. Public signals layout (set by the circuit):
+    //   input[0] = commitment, input[1] = powHash,
+    //   input[2] = nonce,      input[3] = expiry.
+    if (VERIFIER_MODE === 'groth16' && body.proof.groth16) {
+      const sig = body.proof.groth16.input;
+      if (sig.length !== ZAUTH_PUBLIC_SIGNAL_COUNT) {
+        return res.status(400).json({
+          error: 'INVALID_PROOF',
+          message: `expected ${ZAUTH_PUBLIC_SIGNAL_COUNT} public signals, got ${sig.length}`
+        });
+      }
+      const sigNonce = BigInt(sig[2]);
+      const sigExpiry = BigInt(sig[3]);
+      if (sigNonce !== BigInt(challenge.nonce)) {
+        return res.status(400).json({ error: 'NONCE_MISMATCH', message: 'proof nonce != challenge nonce' });
+      }
+      if (sigExpiry !== BigInt(challenge.expirySec)) {
+        return res.status(400).json({ error: 'EXPIRY_MISMATCH', message: 'proof expiry != challenge expiry' });
+      }
+      if (sigNonce >= BN254_R) {
+        return res.status(400).json({ error: 'NONCE_OUT_OF_FIELD', message: 'nonce must be < BN254 scalar field' });
+      }
     }
 
     const isValid = await verifyProofOnchain({

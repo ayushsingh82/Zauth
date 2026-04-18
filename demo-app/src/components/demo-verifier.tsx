@@ -1,80 +1,140 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import type { Challenge, Proof, VerificationResult } from '@ethayush/captcha-sdk';
+import { HashkeyCaptchaSdk } from '@ethayush/captcha-sdk';
+
+type Step =
+  | { kind: 'idle' }
+  | { kind: 'challenge' }
+  | { kind: 'prove'; message: string }
+  | { kind: 'verify' }
+  | { kind: 'done'; result: VerificationResult | { success: boolean } }
+  | { kind: 'error'; message: string };
+
+const VERIFIER_ADDR =
+  process.env.NEXT_PUBLIC_ZAUTH_VERIFIER_ADDRESS || '0xC40c974E6D50D201C93265a9D8423e30D0C551aE';
+const ATTESTOR_ADDR =
+  process.env.NEXT_PUBLIC_ZAUTH_ATTESTOR_ADDRESS || '0x0c9CfcfDfDA0317659DEB59d3409D059a0DCe5DB';
+const EXPLORER =
+  process.env.NEXT_PUBLIC_HASHKEY_EXPLORER || 'https://testnet-explorer.hsk.xyz';
 
 export function DemoVerifier() {
-  const [proof, setProof] = useState('0x');
-  const [inputs, setInputs] = useState('1,2,3');
-  const [result, setResult] = useState<string>('');
-  const [loading, setLoading] = useState(false);
   const verifierApi = process.env.NEXT_PUBLIC_HASHKEY_VERIFIER_API || 'http://localhost:4000';
 
-  const onVerify = async () => {
-    setLoading(true);
-    setResult('');
-    try {
-      const publicInputs = inputs
-        .split(',')
-        .map((v) => v.trim())
-        .filter(Boolean);
+  const sdk = useMemo(
+    () => new HashkeyCaptchaSdk(verifierApi, verifierApi, { artifactBaseUrl: '/zauth' }),
+    [verifierApi]
+  );
 
-      const response = await fetch(`${verifierApi}/verify`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ proof, publicInputs })
-      });
-      const data = await response.json();
-      setResult(JSON.stringify(data, null, 2));
-    } catch (error) {
-      setResult(error instanceof Error ? error.message : 'Verification error');
-    } finally {
-      setLoading(false);
+  const [step, setStep] = useState<Step>({ kind: 'idle' });
+  const [challenge, setChallenge] = useState<Challenge | null>(null);
+  const [proof, setProof] = useState<Proof | null>(null);
+
+  const runFullFlow = useCallback(async () => {
+    setStep({ kind: 'challenge' });
+    setChallenge(null);
+    setProof(null);
+    try {
+      const c = await sdk.getChallenge('zauth-demo');
+      setChallenge(c);
+
+      setStep({ kind: 'prove', message: 'Mining PoW + generating Groth16 proof in browser...' });
+      const t0 = performance.now();
+      const p = await sdk.generateProof(c);
+      const t1 = performance.now();
+      setProof(p);
+
+      setStep({ kind: 'prove', message: `Proof generated in ${(t1 - t0).toFixed(0)} ms. Verifying on-chain...` });
+      await new Promise((r) => setTimeout(r, 50)); // let the UI flush
+      setStep({ kind: 'verify' });
+
+      const v = await sdk.verify(c.challengeId, p, 'zauth-demo');
+      setStep({ kind: 'done', result: v });
+    } catch (e) {
+      setStep({ kind: 'error', message: e instanceof Error ? e.message : String(e) });
     }
-  };
+  }, [sdk]);
+
+  const busy = step.kind === 'challenge' || step.kind === 'prove' || step.kind === 'verify';
 
   return (
     <div className="verify-panel">
       <div className="verify-header">
-        <span className="pow-badge">Interactive Playground</span>
-        <h2 className="verify-title">HashKey Verifier Demo</h2>
+        <span className="pow-badge">Zero-Knowledge Humanness Check</span>
+        <h2 className="verify-title">ZAuth on HashKey — Live Flow</h2>
         <p className="verify-desc">
-          Submit proof and public inputs to your verifier API and inspect the raw JSON response.<br/>
-          Target API: <code>{verifierApi}</code>
+          Click once. Your browser mines a tiny proof-of-work, produces a Groth16 proof
+          with snarkjs, and submits it to the HashKey on-chain verifier.<br />
+          Verifier API: <code>{verifierApi}</code>
+        </p>
+        <p className="verify-desc" style={{ marginTop: 8 }}>
+          On-chain contracts (HashKey Chain Testnet):{' '}
+          <a href={`${EXPLORER}/address/${VERIFIER_ADDR}`} target="_blank" rel="noreferrer">
+            <code>Verifier</code>
+          </a>{' '}
+          &middot;{' '}
+          <a href={`${EXPLORER}/address/${ATTESTOR_ADDR}`} target="_blank" rel="noreferrer">
+            <code>Attestor</code>
+          </a>
         </p>
       </div>
 
-      <div className="input-group">
-        <label>Proof (hex)</label>
-        <textarea className="input" value={proof} onChange={(e) => setProof(e.target.value)} rows={4} placeholder="0x..." />
-      </div>
-
-      <div className="input-group">
-        <label>Public inputs (comma separated uint256)</label>
-        <input className="input" value={inputs} onChange={(e) => setInputs(e.target.value)} placeholder="1, 2, 3" />
-      </div>
-
-      <button className="verify-btn" onClick={onVerify} disabled={loading}>
-        {loading ? (
+      <button className="verify-btn" onClick={runFullFlow} disabled={busy}>
+        {busy ? (
           <span className="flex items-center gap-2 justify-center">
             <svg className="spinner" viewBox="0 0 50 50">
               <circle cx="25" cy="25" r="20" fill="none" strokeWidth="5"></circle>
             </svg>
-            Verifying proof...
+            {step.kind === 'challenge' && 'Requesting challenge...'}
+            {step.kind === 'prove' && (step as { message: string }).message}
+            {step.kind === 'verify' && 'Verifying on HashKey...'}
           </span>
-        ) : 'Verify on HashKey'}
+        ) : 'Prove I\u2019m human'}
       </button>
 
-      {result && (
+      {challenge && (
         <div className="result-container">
           <div className="result-header">
-            <span>Response</span>
-            <span className={result.includes('error') ? 'status-error' : 'status-success'}>
-              {result.includes('error') ? 'Failed' : 'Success'}
-            </span>
+            <span>Challenge</span>
+            <span className="status-success">issued</span>
           </div>
-          <pre className="result-box">
-            {result}
-          </pre>
+          <pre className="result-box">{JSON.stringify(challenge, null, 2)}</pre>
+        </div>
+      )}
+
+      {proof && (
+        <div className="result-container">
+          <div className="result-header">
+            <span>Proof (Groth16)</span>
+            <span className="status-success">generated</span>
+          </div>
+          <pre className="result-box">{JSON.stringify({
+            publicInputs: proof.publicInputs,
+            a: proof.groth16?.a,
+            b: proof.groth16?.b,
+            c: proof.groth16?.c
+          }, null, 2)}</pre>
+        </div>
+      )}
+
+      {step.kind === 'done' && (
+        <div className="result-container">
+          <div className="result-header">
+            <span>On-chain verification</span>
+            <span className="status-success">valid</span>
+          </div>
+          <pre className="result-box">{JSON.stringify(step.result, null, 2)}</pre>
+        </div>
+      )}
+
+      {step.kind === 'error' && (
+        <div className="result-container">
+          <div className="result-header">
+            <span>Error</span>
+            <span className="status-error">failed</span>
+          </div>
+          <pre className="result-box">{step.message}</pre>
         </div>
       )}
     </div>
